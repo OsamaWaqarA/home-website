@@ -1,0 +1,8 @@
+192.168.1.102*Linux Laptop Wi-Fi
+192.168.1.103*osama
+192.168.1.100*PS4
+192.168.1.112*Muhammad Ishaq
+192.168.1.105*Abdullah
+192.168.1.106*Abrar
+192.168.1.117*Laptop_cable
+192.168.1.104*Mom
