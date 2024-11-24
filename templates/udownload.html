@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <title>Deddey Rules</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <br>
+    <br>
+    <form action = "/download from youtube" method="post">
+        <input type="text" name="text" required>
+        <br><br><br>
+        <select id="option" name="option" style="background-color: white; color: black;">
+            <option value="Tech">Tech</option>
+            <option value="MineCraft">MineCraft</option>
+            <option value="Movie">Movie</option>
+            <option value="Car">Car</option>
+            <option value="Cartoon">Cartoon</option>
+            <option value="DIY">DIY</option> 
+            <option value="documentry">documentry</option>
+            <option value="funormeme">fun or meme</option>
+            <option value="Science">Science</option>
+            <option value="Theory">Theory</option>
+            <option value="travelling">travelling</option>
+            <option value="TVSeries">Tv Series</option>
+        </select>
+        <br><br>
+        <p style = color:red; {{message}}></p>
+        <br>
+
+        <input type = "submit" value = "Download a Video" style="cursor: pointer;">
+    </form>
+</body>
+</html>

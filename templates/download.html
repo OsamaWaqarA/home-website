@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/download.css">
+    <title>Deddey Rules</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <br>
+    <br>
+    <center>
+    <div id = "top_bar">
+        <button id="del_pass" onclick="deletefile_sel(); event.stopPropagation();"></button>
+        <button id = "downloadbtn" onclick="downloadFile_sel()"></button>
+        <button id= "transfer" onclick="transfer_sel()"></button>
+    </div>
+    </center>
+    {% for filename in filenames %}
+        {% set index = loop.index0 %}
+        <br>
+        {% if loc == "public_download" %}
+            <div id="DownloadBox" >
+                <input type = "checkbox"  id = "check-{{ filename }}">
+                <div id = "Download_control">
+                    <button id="del_pass" onclick="deletefile('{{ filename }}','public_download'); event.stopPropagation();"></button>
+                    <button id = "downloadbtn" onclick="downloadFile('{{ filename }}')"></button>
+                </div>
+                <center><br><a class = "downloadLink" id ="downloadLink-{{ filename }}" href="{{ url_for('static', filename='uploads/'+filename) }}" download="{{ filename }}">{{ filename }}</a>
+                {% if types[index] == "image" %}
+                    <br><br>
+                    <image src = "{{ url_for('static', filename='uploads/'+filename) }}" id = "display_image" loading = "lazy"></image>
+                {% endif%}
+                {% if types[index] == "video" %}
+                    <br><br>
+                    <video id = "display_video" muted controls loop>
+                        <source src = "{{ url_for('static', filename='uploads/'+filename) }}" type="video/mp4">
+                    </video>
+                {% endif %}
+                </center>
+
+            </div>
+        {% endif %}
+        {% if loc == "private_drive" %}
+            <div id="DownloadBox" >
+                <input type = "checkbox"  id = "check-{{ filename }}">     
+                <div id = "Download_control">
+                    <button id="del_pass" onclick="deletefile('{{ filename }}','private_drive'); event.stopPropagation();"></button>
+                    <button id = "downloadbtn" onclick="downloadFile('{{ filename }}')"></button>
+                </div>
+                <center><br><a class = "downloadLink" id ="downloadLink-{{ filename }}" href="{{ url_for('static', filename='drive/'+IP+'/'+filename) }}" download="{{ filename }}">{{ filename }}</a>
+                {% if types[index] == "image" %}
+                    <br><br>
+                    <image src = "{{ url_for('static', filename='drive/'+IP+'/'+filename) }}" id = "display_image" loading = "lazy"></image>
+                {% endif%}
+                {% if types[index] == "video" %}
+                    <br><br>
+                    <video id = "display_video" muted controls loop>
+                        <source src = "{{ url_for('static', filename='drive/'+IP+'/'+filename) }}" type="video/mp4">
+                    </video>
+                {% endif %}
+            </div>
+        {% endif %}
+        </center>
+        <br>
+
+    {% endfor %}
+</body>
+<script>
+    var want = "{{loc}}";
+    function deletefile(filename,loc){
+        fetch("/delete_file",{
+            method : 'POST',
+            headers : {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ delThis: filename,
+                loc:loc
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            location.reload();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+<script>
+    function downloadFile(filename) {
+        var link = document.getElementById('downloadLink-' + filename);
+        if (link) {
+            link.click();
+        }
+    }
+</script>
+<script src = "/static/web_data/download_sel.js"></script>
+
+</html>

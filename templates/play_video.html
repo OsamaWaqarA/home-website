@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/video.css">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/vid_control.css">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <title>{{dataTitle}}</title>
+</head>
+<body>
+    
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <h2>Playing Video: {{dataTitle}}</h2>
+    <div class = "controlhere">
+        <label class="switch">
+            <input type="checkbox" id = "togglecontrol">
+            <span class="slider round"></span>
+            <p>Custom controls</p>
+        </label>
+    </div><br><br><br><br><br><br>
+
+    <div class = "Searchbar">
+        <form action="/search" method="post" style="color: white;">
+            <input type = "text" id = "text" placeholder="Are you happy now Abdullah" name = "text" style=" text-align: center; width: 300px;background-color: white;color: black;" value = {{data}} >
+            <br>
+            <br>
+            <select id="option" name="option" style="background-color: white; color: black;">
+                <option value="All">All</option>
+                <option value="Movie">Movie</option>
+                <option value="MineCraft">MineCraft</option>
+                <option value="Car">Car</option>
+                <option value="Cartoon">Cartoon</option>
+                <option value="DIY">DIY</option> 
+                <option value="documentry">documentry</option>
+                <option value="funormeme">fun or meme</option>
+                <option value="Science">Science</option>
+                <option value="Tech">Tech</option>
+                <option value="Theory">Theory</option>
+                <option value="travelling">travelling</option>
+                <option value="TVSeries">Tv Series</option>
+            </select>
+            <input type = "submit" value = "Search" style="cursor: pointer;">
+        </form> 
+    </div><br><br><br>
+    <center>
+    <div id = "container_video">
+        <video id  = "video" autoplay controls>
+            <source src="{{ url_for('serve_video', video_filename=filename) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video> 
+        <div id = "control_bar">
+            <button id = "pause_button"></button>
+            <input id = "seekbar" type = "range" min = "0" max = "100" value="0" step="1">
+            <span id = "ctime"></span><span id = "dtime"></span>
+            <button id = "mbtn"></button>
+            <input id = "volumevid" type = "range" min = "0" max = "100" value="100" step="1">
+            <button id = "fbtn"></button>
+        </div>
+    </div>
+    </center>
+    {% for link in links %}
+        {% set index = loop.index0 %}
+        <div class = "bigselect">
+            <div class="videoselcet">
+                <a href="{{ url_for('play_video', filename=link) }}"><img src="{{ url_for('static', filename='tumbnail/'+names[index]) }}" id = "tumbnail" loading = "lazy"></a><br>                
+                <a href="{{ url_for('play_video', filename=link) }}" id = "videotext">{{ shows[index] }}</a>
+            </div>
+        </div>
+    {% endfor %}
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <center>
+        <button onclick="list_update()" id = "more">Show more</button>
+    </center>
+
+
+</body>
+<script>
+    var resume = '{{ resume }}';
+    var next_vid = '{{links[0]}}';
+    let king_links = '{{ links|tojson }}';
+    var loc = 2;
+    var rest_control = 1;
+    C_control = '{{custom_controls}}'
+</script>
+
+<script src = "/static/web_data/video_play.js" ></script>
+</html>

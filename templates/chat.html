@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/chat.css">
+    <title>Chat</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <br>
+    {% for line in lines %}
+        <p>{{line}}</p>
+        <br>
+    {% endfor %}
+    <br>
+    <input type = "text" id = "text" name = "text">
+    <input type = "submit" id = "sent" value = "Sent" style="cursor: pointer;">
+      
+</body>
+<script>
+    function init(){
+        sent_chat = document.getElementById("sent");
+        message = document.getElementById("text");
+        sent_chat.addEventListener("click",sent_data);
+    }
+    window.onload = init;
+
+
+    function sent_data(){
+        fetch("/chat_update",{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({message: message.value,
+                to:'group'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if ("success" == data.status){
+                message.value = ""
+            }else{
+                sent_data();
+            }
+        });
+
+        event.preventDefault();
+    }
+</script>
+</html>

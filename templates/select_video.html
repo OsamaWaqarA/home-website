@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/video.css">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/vid_control.css">
+    <title>Is internet ok</title>
+</head>
+<script>
+    let king_links = '{{ links|tojson }}';
+    var loc = 10;
+    var rest_control = -1;
+    var rest_done = false;
+</script>
+<script src = "/static/web_data/load_video.js" ></script>
+<body>
+
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href= "/playlist" ><img src="{{ url_for('static', filename='Playlist.png') }}" style="cursor: pointer;"></a>
+
+    <div class = "Searchbar">
+        <form action="/search" method="post" style="color: white;">
+            <input type = "text" id = "text" placeholder="Search" name = "text" style=" text-align: center; width: 300px;background-color: white;color: black;" value = {{data}} >
+            <br>
+            <br>
+            <select id="option" name="option" style="background-color: white; color: black;">
+                <option value="All">All</option>
+                <option value="Movie">Movie</option>
+                <option value="MineCraft">MineCraft</option>
+                <option value="Car">Car</option>
+                <option value="Cartoon">Cartoon</option>
+                <option value="DIY">DIY</option> 
+                <option value="documentry">documentry</option>
+                <option value="funormeme">fun or meme</option>
+                <option value="Science">Science</option>
+                <option value="Tech">Tech</option>
+                <option value="Theory">Theory</option>
+                <option value="travelling">travelling</option>
+                <option value="TVSeries">Tv Series</option>
+            </select>
+            <input type = "submit" value = "Search" style="cursor: pointer;">
+        </form> 
+    </div>
+    <br>
+
+    {% for link in links %}
+        {% set index = loop.index0 %}
+        <div class = "bigselect">
+            <div class="videoselcet">
+                <a href="{{ url_for('play_video', filename=link) }}"><img src="{{ url_for('static', filename='tumbnail/'+names[index]) }}" id = "tumbnail" loading = "lazy"></a><br>                
+                <a href="{{ url_for('play_video', filename=link) }}" id = "videotext">{{ shows[index] }}</a>
+            </div>
+        </div>
+    {% endfor %}
+
+
+</body>
+</html>

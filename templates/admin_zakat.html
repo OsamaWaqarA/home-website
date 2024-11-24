@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <title>Clean that money!!!</title>
+</head>
+<body style="background-image: url('/static/bg1.jpg'); background-repeat: repeat;background-size:cover;background-attachment: fixed;">
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <p style="color: white;text-align: center;">The amount of Zakat is {{amount}}</p>
+    <br>
+    <br>
+    <form action="/process_zakat" method="post" style="color: white;">
+        <label for="number">Amount</label>
+        <br>
+        <input type="float" id="float" name="number" style="width: 300px; background-color: white; color: black;" value="">
+        <br>
+        <br>
+        <select id="option" name="option" style="background-color: white; color: black;">
+            <option value="neg">Zakat payed</option>
+            <option value="pos">Zakat pendding</option>
+        </select>
+        <br>
+        <br>
+        <input type="submit" value="Change" style="cursor: pointer;">
+    </form>
+    <br>
+    <br>
+    <br>
+    <p style="color: white;text-align: center;">Record</p>
+    <br>
+    <br>
+    {% for history in historys %}
+        {% set index = loop.index0 %}
+        <center>
+        {%if red[index] == "True" %}
+            <p style="color: red;text-align: center;">{{history}}</p>
+        {% endif %}
+        {%if red[index] == "False" %}
+            <p style="color: green;text-align: center;">{{history}}</p>
+        {% endif %}
+        <br>
+        </center>
+    {% endfor %}
+</body>
+</html>

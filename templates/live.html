@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <title>Miss TV</title>
+</head>
+<body>
+
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href="https://live.arydigital.tv/"><img src="{{ url_for('static', filename='ary digital.jpg') }}" loading="lazy" style="width: 340px;padding: 50px;cursor: pointer;"></a>
+    <a href="https://hum.tv/live/"><img src="{{ url_for('static', filename='humtv.jpg') }}" loading="lazy" style="width: 340px;cursor: pointer;padding: 50px;"></a>
+    <a href="https://harpalgeo.tv/live"><img src="{{ url_for('static', filename='geo.jpg') }}" loading="lazy" style="width: 340px;cursor: pointer;padding: 50px;"></a>
+    <a href="https://www.ptvsportstv.com.pk/live/"><img src="{{ url_for('static', filename='ptvsport.jpg') }}" loading="lazy" style="width: 340px;padding: 50px;cursor: pointer;"></a>
+</body>
+</html>

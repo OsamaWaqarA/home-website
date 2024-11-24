@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <title>Deddey Rules</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br>
+    <br>
+    <br>
+    <center>
+        <form action="/printout" method="post" enctype="multipart/form-data" style="color: white;">
+            <input type="file" id="file-input" name="file" accept=".txt, .pdf, .jpg, .png, .docx" >
+            <br>
+            <br>
+            <p>Color :</p>
+            <select id="option" name="color" style="background-color: white; color: black;">
+                <option value="False">Grey Scale</option>
+                <option value="True">Color</option>
+            </select>
+            <br>
+            <br>
+            <p>Layout :</p>
+            <select id="option" name="angle" style="background-color: white; color: black;">
+                <option value="Portrait">Portrait</option>
+                <option value="Landscape">Landscape</option>
+            </select>
+            <br>
+            <br>
+            <p>Print on both sides :</p>
+            <select id="option" name="side" style="background-color: white; color: black;">
+                <option value="False">Print on one side</option>
+                <option value="True">Print on both side</option>
+            </select>
+            <br>
+            <br>
+            <P>copies: </P>
+            <input type="number" id="number" name="number" style="width: 30px; background-color: white; color: black;" value="{{number}}">
+            <br>
+            <br>
+            <input type="submit" value="Upload" style="background-color: white;color: green; cursor: pointer;">
+        </form>
+    </center>
+</body>
+</html>

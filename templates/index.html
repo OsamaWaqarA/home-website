@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <title>Hello there</title>
+</head>
+<body style="background-image: url('/static/3.jpg'); background-repeat: repeat;background-size:cover;background-attachment: fixed;">
+    <br>
+    <br>
+    <center><h style="font-family: cursive;color: black;">Welcome to the family website, {{name}}</h>
+    <br>
+    <hr>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href = "/submit"><img src = "{{ url_for('static', filename='upload.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href= "/download"><img src = "{{ url_for('static', filename='download.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href= "/select_video"><img src = "{{ url_for('static', filename='watch.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href= "/password"><img src = "{{ url_for('static', filename='key.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href = "/print" ><img src = "{{ url_for('static', filename='printer.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href = "/drive"><img src = "{{ url_for('static', filename='save-file.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br> 
+    <br>
+    <br>  
+    <a href = "/chat"><img src = "{{ url_for('static', filename='chat.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br> 
+    <br>
+    <br> 
+    <a href = "/zakat"><img src = "{{ url_for('static', filename='zakat_logo.png') }}" style = "width: 100px;cursor: pointer;"></a>
+    <br>
+    <br> 
+    <br>
+    <br>  
+    </center>
+    <br>
+    <br>
+    <br>
+    <br>
+</body>
+</html>

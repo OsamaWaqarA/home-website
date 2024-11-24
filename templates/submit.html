@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/upload.css">
+    <title>Deddey Rules</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/select_video">Watch video</a></li>
+            <li><a href="/submit">Upload</a></li>
+            <li><a href="/download">Download</a></li>
+        </ul> 
+    </nav>
+    <br><br><br>
+    <center>
+        <div id="HoldAlL">  
+            <div id="HoldOne">
+                <form id="sent_file" action="/upload" method="post" enctype="multipart/form-data">
+                    <br>
+                    <input type="file" id="file-input" name="file[]" multiple required>
+                    <label for="file-input" id="file-upload">Browse</label>
+                    <div id = "upload_data">
+                        <label for="Filesize">Size: </label>
+                        <p id = "Filesize"></p>
+                        <label for="file-name">name: </label>
+                        <p id="file-name"></p>
+                    </div>
+                    <div class="loader" id="loader"></div>
+                    <p id="upload_done"></p>
+                    <input type = text name = "fromwhere" style = "width: 1px; height: 1px; visibility: hidden;"value="{{loc}}" readonly>
+                    <br>
+                    <input id="sub" type="submit" value="">
+                </form>
+            </div>
+        </div>
+    </center>
+</body>
+<script>
+    const sent_file = document.getElementById("sent_file");
+    const upload_done = document.getElementById("upload_done");
+    const load = document.getElementById("loader");
+    const upbtn = document.getElementById("sub");
+    const backPlate = document.getElementById("HoldAlL");
+    const file_hold = document.getElementById("file-input");
+    const file_name = document.getElementById("file-name");
+    const Filesize = document.getElementById("Filesize");
+    var Thesize = 0;
+    var unit = " byte";
+
+    file_hold.addEventListener('change', () => {
+        const files = file_hold.files;
+        if (files.length > 0) {
+            Thesize = 0;
+            unit = " byte";
+            const fileNames = Array.from(files).map(file => file.name).join(' ,');
+            const fileSize = Array.from(files).map(file => file.size);
+            file_name.innerHTML = fileNames;
+            for (let i = 0; i < fileSize.length; i++){
+                Thesize += fileSize[i];
+            }
+            console.log(Thesize);
+            if (Thesize > 999) {
+                if (Thesize <= 1024 * 1024 - 1) { 
+                    Thesize /= 1024;
+                    unit = " KB";
+                } else if (Thesize <= 1024 * 1024 * 1024 - 1) {
+                    Thesize /= 1024 * 1024;
+                    unit = " MB";
+                } else {
+                    Thesize /= 1024 * 1024 * 1024;
+                    unit = " GB";
+                }
+            }
+            Thesize = Number(Thesize);
+            Thesize = Thesize.toFixed(2);
+            Filesize.innerHTML = Thesize + unit;
+
+        } else {
+            file_name.innerHTML = '';
+            Thesize = 0;
+            unit = " byte";
+        }
+        backPlate.style.backgroundColor = "black";
+        upload_done.innerHTML = "";
+    });
+    
+    sent_file.addEventListener("submit", (event) => {
+        load.style.visibility = "visible";
+        upbtn.style.visibility = "hidden";
+        backPlate.style.backgroundColor = "rgb(119, 40, 9)";
+        upload_done.innerHTML = "Uploading ...";
+
+        const formData = new FormData(sent_file);
+        fetch(sent_file.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(res => res.json())
+        .then(data => {
+            load.style.visibility = "hidden";
+            upbtn.style.visibility = "visible";
+            if (data.status == "success") {
+                backPlate.style.backgroundColor = "Green";
+                upload_done.innerHTML = "Uploaded";
+                file_hold.value = "";
+                file_name.innerHTML = "";
+            } else {
+                backPlate.style.backgroundColor = "red";
+                upload_done.innerHTML = "Failed";
+            }
+        });
+    
+        event.preventDefault();
+    });
+</script>
+</html>

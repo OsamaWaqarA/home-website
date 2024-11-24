@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='icon.png') }}">
+    <link rel="stylesheet" type="text/css" href="/static/web_data/all.css">
+    <title>{{dataTitle}}</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href = "/">Home</a></li>
+            <li><a href = "/select_video">Watch video</a></li>
+            <li><a href = "/submit">Upload</a></li>
+            <li><a href = "/download">Download</a></li>
+        </ul> 
+    </nav>
+
+    <h2 style="color: white;font-family: cursive;">Playing Video: {{dataTitle}}</h2>
+    <center>
+    <video width="340" height="300" loop autoplay>
+        <source src="{{ url_for('static', filename='Rick Astley - Never Gonna Give You Up (Official Music Video).mp4') }}" type="video/mp4">
+    </video>
+    <br>
+    <br>
+    <hr>
+    <h2 style="color: white; text-align: center; font-size: 40px;font-family: verdana;">More for you</h2>
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <form action="/search" method="post" style="color: white;">
+        <input type = "text" id = "text" placeholder="Are you happy now Abdullah" name = "text" style=" text-align: center; width: 300px;background-color: white;color: black;" value = {{data}} >
+        <br>
+        <br>
+        <select id="option" name="option" style="background-color: white; color: black;">
+            <option value="All">All</option>
+            <option value="Movie">Movie</option>
+            <option value="Car">Car</option>
+            <option value="Cartoon">Cartoon</option>
+            <option value="DIY">DIY</option> 
+            <option value="documentry">documentry</option>
+            <option value="funormeme">fun or meme</option>
+            <option value="Science">Science</option>
+            <option value="Tech">Tech</option>
+            <option value="Theory">Theory</option>
+            <option value="travelling">travelling</option>
+            <option value="TVSeries">Tv Series</option>
+        </select>
+        <input type = "submit" value = "Search" style="cursor: pointer;">
+    </form> 
+    </center>
+    {%if search != "" %}
+        {% for line in lines %}
+            {% set index = loop.index0 %}
+            <center>
+            <br>
+            <br>
+            <br>
+            <br>
+            <a href="{{ url_for('play_video', filename=line) }}"><img src="{{ url_for('static', filename='tumbnail/'+names[index]) }}" loading="lazy" style="width: 350px;cursor: pointer;"></a>
+            <br>
+            <br>
+            <a href="{{ url_for('play_video', filename=line) }}" style = "text-decoration: none;color: white;cursor: pointer;font-family: Monaco;">{{ shows[index] }}</a>
+            </center>
+            <br>
+            <br>
+            <br>
+            <br>
+            <hr>
+        {% endfor %}
+    {% endif %}
+
+</body>
+</html>
