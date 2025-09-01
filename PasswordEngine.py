@@ -1,120 +1,89 @@
-import os 
+import os, random
 from cryptography.fernet import Fernet
 class password():
-    def gen(self,alt,style):
-        import random
-        num = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
-        lc = [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122]
-        uc = [65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90]
-        s = [33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,58,59,60,61,62,63,64,91,92,93,94,95,96,123,124,125,126,451,247]
-        new = [33,64,35,36,37,94,38,42,46,40,41]
-        numl = 0
-        strong = style
-        lcl = 0
-        ucl = 0
-        sl = 0
-        size = alt
-        draft = 0
-        word = []
-        count = 0
-        password = ""
-        better = []
-        for i in range(0,1000):
-            random.shuffle(num)
-            random.shuffle(lc)
-            random.shuffle(uc)
-            if strong == True:
-                random.shuffle(s)
-            else:   
-                random.shuffle(new)
+    
+    def gen(self,full_size,style,p_number = 20,p_lower_case = 20,p_upper_case = 20,p_symbol = 20):#Stype True is full and False is limited
+        
+        number = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+        Full_symbol = [33,35,36,37,38,40,41,42,43,44,45,46,47,58,59,60,61,62,63,64,91,92,93,94,95,96,123,124,125,126,451,247]
+        limited_symbol = [33,64,35,36,37,38,42,46,40,41]
 
-        while True:
-            if size >= 5 :
-                draft = int(size * 0.2)
-                break
+        if style:
+            symbol = Full_symbol
+        else:
+            symbol = limited_symbol
 
-        while True:
-            better = []
+        num_size = int(full_size * (p_number/100))
+        symbol_size = int(full_size * (p_symbol/100))
+        lower_case_size = int(full_size * (p_lower_case/100))
+        upper_case_size = int(full_size * (p_upper_case/100))
+        password_list = []
+
+        if num_size < len(number) and num_size > 0:
+            for i in range(0,len(number)):
+                random.shuffle(number)
+        
+        if symbol_size < len(symbol) and symbol_size > 0:
+            for i in range(0,len(symbol)):
+                random.shuffle(symbol)
+
+        counter = 0
+        for i in range(0,num_size):
+            password_list.append(number[counter])
+            counter += 1
+            if counter >= len(number):
+                counter = 0
+
+        random.shuffle(password_list)
+
+        counter = 0
+        for i in range(0,symbol_size):
+            password_list.append(symbol[counter])
+            counter += 1
+            if counter >= len(symbol):
+                counter = 0
+
+        random.shuffle(password_list)
+
+        alfa_list = set()
+        for i in range(0,upper_case_size):
             while True:
-                ran = int(random.SystemRandom().randint(1, 4))
-                if ran >= 1 and ran <= 4:
-                    if ran not in better:
-                        better.append(ran)
-                if len(better) == 4:
+                ran = random.randint(65,91)
+                if len(alfa_list) >= 26 or ran not in alfa_list:
                     break
+            alfa_list.add(ran)  
 
-            for i in range(0,4):
-                if better[i] == 1:
-                    word.append(num[numl])
-                elif better[i] == 2:
-                    word.append(lc[lcl])
-                elif better[i] == 3:
-                    word.append(uc[ucl])
-                elif better[i] == 4:
-                    if strong == True:
-                        word.append(s[sl])
-                    else:
-                        word.append(new[sl])
-                    
-            numl += 1
-            lcl += 1
-            ucl += 1
-            sl += 1
-            count += 1
-            random.shuffle(word)
-            if numl >= 9:
-                numl = 0
-            if lcl >= 25:
-                lcl = 0
-            if ucl >= 25:
-                ucl = 0
-            if sl >= 33 and strong == True:
-                sl = 0
-            if sl >= 10 and strong == False:
-                sl = 0
-            if count == draft:
-                break
-            
-        count = count * 4
+        password_list.extend(alfa_list)
+        random.shuffle(password_list)
 
+        alfa_list = set()
+        for i in range(0,lower_case_size):
+            while True:
+                ran = random.randint(97,123) 
+                if len(alfa_list) >= 26 or ran not in alfa_list:
+                    break
+            alfa_list.add(ran)  
+
+        password_list.extend(alfa_list)
+        random.shuffle(password_list)
+
+        if len(password_list) < full_size:
+            for i in range(0,(full_size-len(password_list))):
+                while True:
+                    ran = random.randint(33,451)
+                    if ran in symbol or ran in number or (ran >= 65 and ran <= 91) or (ran >= 97 and ran <= 123):
+                        break
+                password_list.append(ran)
 
         while True:
-            ran = int(random.SystemRandom().randint(0, 1000))
-            if (ran >= 33 and ran <= 94) or (ran >= 97 and ran <= 126) or (ran == 451) or (ran == 247):
-                word.append(ran)
-                count += 1
-                random.shuffle(word)
-            if count >= size:
+            if (password_list[0] >= 65 and password_list[0] <= 91) or (password_list[0] >= 97 and password_list[0] <= 123) or lower_case_size + upper_case_size == 0:
                 break
+            random.shuffle(password_list)
 
+        password = "".join(chr(string) for string in password_list)
 
-        sl = 0
-        lcl = 0
-        ucl = 0
-        numl = 0
-
-        random.shuffle(word)
-
-        while True:
-            if (word[0] >= 65 and word[0] <= 90) or (word[0] >= 97 and word[0] <= 122):
-                break
-            else:
-                random.shuffle(word)
-
-
-        for i in range(0,(size)):
-            if (word[i] >= 33 and word[i] <= 47) or (word[i] >= 58 and word[i] <= 64) or (word[i] >= 91 and word[i] <= 96) or (word[i] >= 123 and word[i] <= 126) or (word[i] == 451) or (word[i] == 247):
-                sl += 1
-            if word[i] >= 97 and word[i] <= 122:
-                lcl += 1
-            if word[i] >= 65 and word[i] <= 90:
-                ucl += 1
-            if word[i] >= 48 and word[i] <= 57:
-                numl += 1
-            password = password+(chr(word[i]))
         return password
     
-
     def codename(self,name):
         search = ""
         for i in range(0,len(name)):
