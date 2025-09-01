@@ -1,343 +1,183 @@
 from flask import Flask, render_template, request, jsonify, send_file,redirect,abort
 
-import os, threading, random, time, PasswordEngine, datetime,shutil,re
+import os, threading, time,shutil,re,pypandoc, videoMaster, requests,dbms
 
-password_ins = PasswordEngine.password()
+info = dbms.dbms()
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
 
 from urllib.parse import quote, unquote
 
-def clean_filename(filename):
-    cleaned_filename = re.sub(r'[^\w\s.-]', '', filename)
-    return cleaned_filename
-
-
-who = []
-ip = []
-
-def video_recommend(cip,list_vid):
-    [random.shuffle(list_vid) for i in range(0,100)]
-    ans = []
-    fcat = ""
-    if os.path.exists(os.getcwd()+"/history/"+str(cip)+".txt"):
-        with open(os.getcwd()+"/history/"+str(cip)+".txt","r") as file:
-            line = file.readline().strip()
-        parts = []
-        cats = []
-        parts = line.split("*")
-        parts[1] = parts[1][32:len(parts[1])]
-        for vid in list_vid:
-            if parts[1] in vid:
-                name = vid
-                name = name[0:name.find("*")]
-                list_vid.remove(vid)
-                break
-        hold = os.listdir(os.getcwd()+"//static")
-        for cat in hold:
-            if ".txt" in cat:
-                cats.append(cat)
-        for cat in cats:
-            with open(os.getcwd()+"//static//"+cat,"r",errors="ignore") as file:
-                while True:
-                    line = file.readline().strip()
-                    if line:
-                        if line in name:
-                            fcat = cat
-                    elif line == "":
-                        break
-            if fcat != "":
-                break
-        if fcat == "":
-            ans = list_vid
-        else:
-            for vid in list_vid:
-                with open(os.getcwd()+"//static//"+fcat,"r",errors="ignore") as file:
-                    while True:
-                        line = file.readline().strip()
-                        if line:
-                            if line in vid:
-                                ans.append(vid)
-                        else:
-                            break
-            while True:
-                if len(ans) >= len(list_vid):
-                    break
-                for vid in list_vid:
-                    if vid not in ans :
-                        ans.append(vid)
-    else:
-        ans = list_vid
-    return ans
-    
-    
-
-def how_much_done(filename,cip):
-    resume = 0
-    userList = os.listdir(os.getcwd()+"/history") 
-    for user in userList:
-        if cip in user:
-            with open(os.getcwd()+"/history/"+user,"r") as file:
-                while True:
-                    line = file.readline().strip()
-                    if line:
-                        if filename in line:
-                            notneed, notneed,resume = line.split("*")
-                    else:
-                        break 
-    return resume 
-
-def video_id_spearate(coded):
-    loc = coded.find("*")
-    video = coded[0:loc]
-    id = coded[loc+1:len(coded)]
-    true_id = []
-    with open("video_id.txt","r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                if video in line and id in line:
-                    return video,id
-            else:
-                break
-    return "", ""
-
-def video_id():
-    videos = []
-    with open("video.txt","r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                videos.append(line)
-            else:
-                break
-    ids = []
-    with open("video_id.txt","r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                ids.append(line)
-            else:
-                break
-    for video in videos:
-        found = False
-        for id in ids:
-            if video in id:
-                found = True
-                break
-        if found == False:
-            result = ""
-
-            while True:
-                ran = int(random.SystemRandom().randint(48, 122))
-                if ran >= 48 and ran <= 57:
-                    result += (chr(ran))
-                elif ran >= 65 and ran <= 90:
-                    result += (chr(ran))
-                elif ran >= 97 and ran <= 122:
-                    result += (chr(ran))
-                if len(result) == 20:
-                    if result not in ids:
-                        break
-                    else:
-                        result = ""
-            ids.append(video+"*"+result)
-    with open("video_id.txt","w") as file:
-        for id in ids:
-            file.write(id)
-            file.write("\n")
-    
-        
-    
-    
-
-def check_videos():
-    v_slow = os.listdir("/media/osama/slow")
-    v_usb = os.listdir("/media/osama/usb")
-    for i in range(0,100):
-        for j in range(0,len(v_slow)):
-            if ".mp4" not in v_slow[j] or ".mkv" not in v_slow[j]:
-                v_slow.remove(v_slow[j])
-                break
-    for i in range(0,100):
-        for j in range(0,len(v_usb)):
-            if ".mp4" not in v_usb[j] or ".mkv" not in v_usb[j]:
-                v_usb.remove(v_usb[j])
-                break
-            
-    hold = []
-    for i in range(0,len(v_slow)):
-        hold.append(v_slow[i])
-    for i in range(0,len(v_usb)):
-        hold.append(v_usb[i])
-        
-    try:
-        os.remove("video.txt")
-    except FileNotFoundError:
-        pass
-    
-    with open("video.txt","a") as file:
-        for i in range(0,len(hold)):
-            file.write(hold[i])
-            file.write("\n")
-    video_id()
-        
-
-def identify(ip):
-    twho = []
-    tip = []
-
-    with open(os.getcwd()+"//loc.txt","r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                tip.append(line)
-            else:
-                break
-    for i in range(0,len(tip)):
-        num = int(tip[i].find("*"))
-        twho.append(tip[i][num+1:len(tip[i])])
-        tip[i] = tip[i][0:num]
-        if ip == tip[i]:
-            return twho[i]
-    
-
-
-twho = []
-tip = []
-
-with open(os.getcwd()+"//loc.txt","r") as file:
-    while True:
-        line = file.readline().strip()
-        if line:
-            tip.append(line)
-        else:
-            break
-for i in range(0,len(tip)):
-    num = int(tip[i].find("*"))
-    twho.append(tip[i][num+1:len(tip[i])])
-    tip[i] = tip[i][0:num]
-ip = tip
-who = twho
 
 app = Flask(__name__)
 
-#start_video = threading.Thread(target=check_videos)
+def ip_translate(ip,secure):
+    if "https" in ip and not secure:
+        ip = ip.replace("https","http")
+    elif "https" not in ip and secure:
+        ip = ip.replace("http","https")
+    ip = ip.replace("//","((")
+    ip = ip[0:ip.find("/")]
+    ip = ip.replace("((","//")
+    return ip
 
-#start_video.start()
+def send_to_control_Api(ip,data):
+    try:
+        response = requests.post("http://192.168.1."+str(ip)+":5000/info", json=data, timeout=5)
+        response.raise_for_status()  
+        return response.json(),"success"
+    except requests.exceptions.RequestException as e:
+        return None,"Failed"
+
+def clean_filename(filename,respace = True):
+    cleaned_filename = re.sub(r'[^\w\s.-]', '', filename)
+    while respace:
+        if " " not in  cleaned_filename:
+            break
+        hold =  cleaned_filename[0: cleaned_filename.find(" ")]
+        cleaned_filename =  cleaned_filename[ cleaned_filename.find(" ")+1:len( cleaned_filename)]
+        cleaned_filename = hold +"_"+  cleaned_filename
+    return cleaned_filename
+
+def remove_after_done(name,page):
+    time.sleep(60*int(page))
+    os.remove(str(os.getcwd())+"/" +str(name))
 
 @app.route('/video/<video_filename>')
 def serve_video(video_filename):
-    data = []
-    with open("video_id.txt","r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                data.append(line)
-            else:
-                break
-    for i in range(0,len(data)):
-        video_temp,hold  = video_id_spearate(data[i])
-        if video_filename == hold:
-            video_filename = video_temp
-            break
-    if os.path.exists("/media/osama/slow/" + video_filename):
-        video_path = "/media/osama/slow/" + video_filename
-    else:
-        video_path = "/media/osama/usb/" + video_filename
+    cmd = "select l.location, v.name from vid.location as l join vid.video as v on v.vid_ID = l.vid_ID  where v.vid_ID = '"+str(video_filename)+"';"
+    ans = info.getdata(cmd)
+    video_path = f"/media/osama/{ans[0][0]}/{ans[0][1]}.mp4"
     return send_file(video_path, mimetype='video/mp4')
+
+def file_size_man(size):
+    units = ["bytes", "KB", "MB", "GB", "TB"]
+    factor = 1000  
+    unit_index = 0
+
+    while size >= factor and unit_index < len(units) - 1:
+        size /= factor
+        unit_index += 1
+
+    return f"{size:.2f} {units[unit_index]}"
 
 
 @app.route("/")
 def index():
-    start_video = threading.Thread(target=check_videos)
-    start_video.start()
-    here = -1
-    for i in range(0,len(ip)):
-        if str(request.remote_addr) == ip[i]:
-            here = i
-            break
-    if here == -1 :
-        return render_template("index.html",name = "Guest")
-    else:
-        return render_template("index.html",name=who[here])
+    fsize = ""
+    backup = False
 
-        
+    if os.path.exists(os.getcwd()+"//static//website.tar.gz"):
+        backup = True
+        size = os.path.getsize(os.getcwd()+"//static//website.tar.gz")
+        fsize = "The file size: "+file_size_man(size)
+    name = info.get_name(str(request.remote_addr))
+
+    return render_template("index.html",name=name,fsize=fsize,show="“I Crashed my Airplane” - What can we learn from this Trevor Jacob React",names="“I Crashed my Airplane” - What can we learn from this Trevor Jacob React.jpg")
+
+@app.route("/refreshExIP", methods=['GET','POST'])
+def refreshexIP():
+    info.refresh_exIP()
+    return jsonify({"status":"done"})
+
+@app.route("/removeTrash")
+def TrashClean():
+    Thelist = []
+    Thelist = os.listdir(os.getcwd()+"//static//trash")
+    for data in Thelist:
+        os.remove(os.getcwd()+"//static//trash//"+data)
+    return redirect("/")
+
+@app.route("/search",methods=['POST'])
+def search():
+    op = request.form.get('option', '').strip()
+    text = request.form.get('text', '').strip()
+
+    if "All" in op and len(text) > 0:
+        newlist = info.search_video(text)
+    elif "All" not in op:
+        newlist = info.search_video(text,op)
+    else:
+        return redirect("/select_video")
+    
+    ids = []
+    name  = []
+    nail = []
+
+    ops = ["All"]
+    op = info.getdata("select cat_name from vid.category;")
+    for data in op:
+        ops.append(data[0])
+    
+    for data in newlist:
+        name.append(data[0])
+        ids.append(data[1])
+        nail.append(data[0]+".jpg")
+            
+    return render_template("select_video.html",shows = name,names=nail,links = ids,ops=ops)
+
+@app.route("/display_playlist<filename>")
+def display_playlist(filename):
+    uid = info.get_uid_from_ip(request.remote_addr)
+    rows = info.getdata(f"select v.name, v.vid_ID, IFNULL(h.duration, 0) from vid.video as v left join vid.history as h on h.vid_ID = v.vid_ID and h.uid = {uid[0][0]}  where v.playlistID = '{filename}' order by episode asc;")
+    
+
+@app.route("/playlist")
+def playlist():
+    rows = info.getdata('select playlistID, Playlist_name  from vid.playlist where playlistID != "AA00";')
+    plists = []
+    link = []
+    nail = []
+    for row in rows:
+        nailtemp = info.getdata(f"select name from vid.video where playlistID = '{row[0]}' order by episode asc limit 1;")
+        nail.append(nailtemp[0][0]+".jpg") #make this more effiect calling db in each loop is madness
+        link.append(row[0])
+        plists.append(row[1])
+    return render_template("select_playlist.html", lines = link,shows = plists,nail=nail)
+    
 
 @app.route("/select_video")
 def select_video():
-    read = []
-    with open("video_id.txt","r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                read.append(line)
-            else:
-                break
-            
-    read = video_recommend(str(request.remote_addr),read)
-            
-    video = []
-    ids = []
-    
-    for i in range(0,10):
-        video_hold,ids_hold = video_id_spearate(read[i])
-        video.append(video_hold)
-        ids.append(ids_hold)
-            
     name  = []
     nail = []
-    for i in range(0,10):
-        name.append(video[i][0:-4])
-        nail.append(video[i][0:-4]+".jpg")
-    return render_template("select_video.html",shows = name,names=nail,links = ids)
+    ids = []
+    cuslist = info.recommend_video(request.remote_addr)
 
-@app.route("/restVideo", methods=['GET','POST'])
-def rest_of_video():
+    ops = ["All"]
+    op = info.getdata("select cat_name from vid.category;")
+    for data in op:
+        ops.append(data[0])
+
+    for data in cuslist:
+        name.append(data[0])
+        nail.append(data[0]+".jpg")
+        ids.append(data[1])
+    return render_template("select_video.html",shows = name,names=nail,links = ids,ops=ops)
+
+@app.route("/update_loc", methods=['GET','POST'])
+def update_loc():
     data = request.get_json()
-    present = data.get("videosHere")
-    rest_control = data.get("number_called")
-    full = False
-    video = []
-    hold = []
-    link = []
-    if rest_control == -1:
-        size = 10000
-    else:
-        size = 10
-    with open("video_id.txt", "r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                hold.append(line)
-            else:
-                break
-    hold = video_recommend(str(request.remote_addr),hold)
-    if len(present) >= len(hold):
-        return jsonify({'status': 'success',
-                        "full": True}) 
-    i = 0
-    while True:
-        video_temp,link_temp = video_id_spearate(hold[i])
-        if link_temp in present:
-            pass
-        else:
-            video.append(video_temp)
-            link.append(link_temp)
-        i += 1
-        if len(video) == size or i > len(hold)-1:
-            break
-    video_data = []
-    for i in range(0,len(video)):
-        video_data.append({
-            "shows": video[i][0:-4],
-            "names": video[i][0:-4] + ".jpg",
-            "lines": link[i],
-            "full": full
-        })
+    ip = str(data.get("ip"))
+    
 
-    return jsonify(video_data) 
+    res, result = send_to_control_Api(ip,data)
+    if result == "success" :
+        return jsonify(res)
+    else:
+        if "123" in ip:
+            ip = "102"
+        else:
+            ip = "123"
+        res, result = send_to_control_Api(ip,data)
+        if result == "success":
+            return jsonify(res)
+        else:
+            return jsonify({"status":"failed"})
+
+@app.route("/control_device")
+def master_control():
+    return render_template("remote_control.html")
     
 @app.route('/update_time', methods=['POST'])
 def update_time():
@@ -345,30 +185,200 @@ def update_time():
     current_time = data.get('time')
     loc = data.get('loc').strip()
 
-    loc = unquote(loc.replace("http://192.168.1.106:5000/play_video/",""))
-    reads = [str(request.remote_addr)+"*"+str(loc)+"*"+str(current_time)]
-    try:
-        with open(os.getcwd()+"//history//"+str(request.remote_addr)+".txt","r") as file:
-            while True:
-                line = file.readline().strip()
-                if line:
-                    reads.append(line)
-                else:
-                    break
-        try:
-            if loc in reads[1]:
-                reads.remove(reads[1])
-        except IndexError:
-            pass
-        with open(os.getcwd()+"//history//"+str(request.remote_addr)+".txt","w") as file:
-            for read in reads:
-                file.write(read)
-                file.write("\n")   
-    except(FileNotFoundError):
-        with open(os.getcwd()+"//history//"+str(request.remote_addr)+".txt","a") as file:
-            file.write(reads[0])
-    
+    loc = (loc[-6:len(loc)])
+    info.update_video_history(request.remote_addr,loc[-6:len(loc)],current_time)
+
     return jsonify({'status': 'success'}) 
+
+@app.route("/transfer")
+def transfer():
+    plist = os.listdir(os.getcwd()+"//static//drive//")
+    option2data = []
+    for data in plist:
+        if "trash" not in data:
+            option2data.append(info.get_name(data))
+    folder = os.listdir(os.getcwd()+"//static//drive//"+plist[0])
+    option3data = ["lobby"]
+    filenames = []
+    types = []
+    for data in folder:
+        if os.path.isdir(os.getcwd()+"//static//drive//"+plist[0]+"//"+data):
+            option3data.append(data)
+    
+    filedata = os.listdir(os.getcwd()+"//static//uploads")
+    for data in filedata:
+        filenames.append(data)
+        if ".jpg" in data or ".png" in data or ".jpeg" in data:
+            types.append("image")
+        elif ".mp4" in data:
+            types.append("video")
+        else:
+            types.append("unknown")
+
+    return render_template("transfer.html",loc="public_download",filenames=filenames,types=types,option2data=option2data,option3data=option3data,op1data = ["public","private"],option1data = ["private","public"])
+
+@app.route("/transfer/data", methods=['POST','GET'])
+def transfer_Data():
+    data = request.get_json()
+    op1data = data.get("op1data")
+    op2data = data.get("op2data")
+
+    option1data = data.get("option1data")
+    option2data = data.get("option2data")
+    option3data = data.get("option3data")
+    copylist = data.get("copylist")
+
+    if "public" in op1data:
+        if "public" in option1data:
+            return jsonify({"status":"can not copy and paste at same location"})
+        if "lobby" in option3data:
+            for data in copylist:
+                try: 
+                    shutil.move(os.getcwd()+"//static//uploads//"+data, os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//")
+                except Exception as e:
+                    if os.path.exists(os.getcwd()+"//static//uploads//"+data) and os.path.exists(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+data):
+                        os.remove(os.getcwd()+"//static//uploads//"+data)
+        else:
+            for data in copylist:
+                try:
+                    shutil.move(os.getcwd()+"//static//uploads//"+data, os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+option3data+"//")
+                except Exception as e:
+                    if os.path.exists(os.getcwd()+"//static//uploads//"+data) and os.path.exists(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+option3data+"//"+data):
+                        os.remove(os.getcwd()+"//static//uploads//"+data)           
+    else:
+        if op2data in option3data and str(request.remote_addr) in info.get_ip_from_name(option2data):
+            return jsonify({"status":"can not copy and paste at same location"})
+        if "public" in option1data:
+            if "lobby" in op2data:
+                for data in copylist:
+                    try:
+                        shutil.move(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data,os.getcwd()+"//static//uploads//")
+                    except Exception as e:
+                        if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data) and os.path.exists(os.getcwd()+"//static//uploads//"+data):
+                            os.remove(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data)
+            else:
+                for data in copylist:
+                    try:
+                        shutil.move(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data,os.getcwd()+"//static//uploads//")
+                    except Exception as e:
+                        if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data) and os.path.exists(os.getcwd()+"//static//uploads//"+data):
+                            os.remove(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data)
+        else:
+            if "lobby" in op2data and "lobby" in option3data:
+                for data in copylist:
+                    try:
+                        shutil.move(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data,os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//")
+                    except Exception as e:
+                        if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data) and os.path.exists(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+data):
+                            os.remove(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data)
+            elif "lobby" in op2data and "lobby" not in option3data:
+                for data in copylist:
+                    try:
+                        shutil.move(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data,os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+option3data+"//")
+                    except Exception as e:
+                        if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data) and os.path.exists(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+option3data+"//"+data):
+                            os.remove(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data)
+            elif "lobby" not in op2data and "lobby" in option3data:
+                for data in copylist:
+                    try:
+                        shutil.move(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data,os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//")
+                    except Exception as e:
+                        if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data) and os.path.exists(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+data):
+                            os.remove(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data)
+            else:
+                try:
+                    shutil.move(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data,os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+option3data+"//")
+                except Exception as e:
+                    if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data) and os.path.exists(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+option3data+"//"+data):
+                        os.remove(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data+"//"+data)
+
+    return jsonify({"status":"sucess"})
+
+@app.route("/transfer/config/<op1data>/<op2data>/<option1data>/<option2data>/<option3data>")
+def transfer_config(op1data,op2data,option1data,option2data,option3data):
+    op1data = clean_filename(op1data,False)
+    op2data = clean_filename(op2data,False)
+    option1data = clean_filename(option1data,False)
+    option2data = clean_filename(option2data,False)
+    option3data = clean_filename(option3data,False)
+    filenames = []
+    types = []
+    newop1data = []
+    newop1data.append(op1data)
+    newop2data = []
+    loc = ""
+    if "public" in op1data:
+        loc = "public_download"
+        newop1data.append("private")
+        fdata = os.listdir(os.getcwd()+"//static//uploads")
+    else:
+        loc = "private_drive"
+        newop1data.append("public")
+        newop2data.append("lobby")
+        if op2data == None or op2data == "":
+            op2data = "lobby"
+        filedata = os.listdir(os.getcwd()+"//static//drive//"+str(request.remote_addr))
+
+        if "lobby" in op2data:
+            fdata = []
+            for data in filedata:
+                if os.path.isfile(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data):
+                    fdata.append(data)
+        else:
+            fdata = os.listdir(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+op2data)
+
+        for data in filedata:
+            if os.path.isdir(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+data):
+                newop2data.append(data)
+        for i in range(0,len(newop2data)):
+            if op2data == newop2data[i] and i > 0:
+                newop2data[i] = newop2data[0]
+                newop2data[0] = op2data
+
+    for data in fdata:
+        filenames.append(data)
+        if ".jpg" in data or ".png" in data or ".jpeg" in data:
+            types.append("image")
+        elif ".mp4" in data:
+            types.append("video")
+        else:
+            types.append("unknown")
+    
+    newop1 = [option1data]
+    newop2 = []
+    newop3 = []
+
+    if "private" in option1data:
+        plist = os.listdir(os.getcwd()+"//static//drive//")
+        newop1.append("public")
+        if option2data == "" or option2data == "<>" or option2data == None:
+            for data in plist:
+                if os.path.isdir(os.getcwd()+"//static//drive//"+data) and "trash" not in data:
+                    option2data = info.get_name(data)
+                    option3data = "lobby"
+                    break
+        newop2.append(option2data)
+        plist = os.listdir(os.getcwd()+"//static//drive//")
+        for data in plist:
+            if os.path.isdir(os.getcwd()+"//static//drive//"+data) and "trash" not in data:
+                if info.get_name(data) not in option2data :
+                    newop2.append(info.get_name(data))
+        plist = os.listdir(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)) 
+        for data in plist:
+            if os.path.isdir(os.getcwd()+"//static//drive//"+info.get_ip_from_name(option2data)+"//"+data):
+                newop3.append(data)
+        newop3.append("lobby")
+        for i in range(0,len(newop3)):
+            if option3data ==  newop3[i] and i > 0:
+                newop3[i] = newop3[0]
+                newop3[0] = option3data
+
+    else:
+        newop1.append("private")
+        newop2 = []
+        newop3 = []
+
+    return render_template("transfer.html",IP=str(request.remote_addr),loc=loc,filenames=filenames,types=types,option1data = newop1,option2data=newop2,option3data=newop3,op1data = newop1data,op2data=newop2data )
 
 @app.route("/drive")
 def drive_select():
@@ -380,7 +390,13 @@ def submit():
 
 @app.route("/drive/upload")
 def pdrive_upload():
-    return render_template('submit.html',loc = "private_drive")
+    folders = ["lobby","+"]
+    if os.path.exists(os.getcwd()+"//static/drive//"+str(request.remote_addr)):
+        result = os.listdir(os.getcwd()+"//static/drive//"+str(request.remote_addr))
+        for data in result:
+            if os.path.isdir(os.getcwd()+"//static/drive//"+str(request.remote_addr)+"//"+data):
+                folders.append(data)
+    return render_template('submit.html',loc = "private_drive",options=folders)
 
 @app.route("/get_download_name", methods=['POST','GET'])
 def get_download_name():
@@ -389,7 +405,16 @@ def get_download_name():
     if "public_download" in want:
         result = os.listdir(os.getcwd()+"//static//uploads")
     elif "private_drive" in want:
-        result = os.listdir(os.getcwd()+"//static/drive//"+str(request.remote_addr))
+        roomloc = data.get("roomloc")
+        if "lobby" in roomloc:
+            hold = os.listdir(os.getcwd()+"//static/drive//"+str(request.remote_addr))
+            result = []
+            for data in hold:
+                if os.path.isfile(os.getcwd()+"//static/drive//"+str(request.remote_addr)+"//"+data):
+                    result.append(data)
+        else:
+            result = os.listdir(os.getcwd()+"//static/drive//"+str(request.remote_addr)+"//"+roomloc)
+        
     else:
         return jsonify({"status":"Wrong_type"})
     return jsonify({"status":"sucess","result":result})
@@ -411,7 +436,7 @@ def pdrive_upload_force():
 def upload_file():
     loc = request.form.get('fromwhere', '').strip()
     if 'file[]' not in request.files:
-        return 'No file part'
+        return jsonify({'status': 'error'})
     
     files = request.files.getlist('file[]')
 
@@ -424,20 +449,38 @@ def upload_file():
         if "public_upload" in loc:
             file.save(os.getcwd()+"//static//uploads/" + file.filename)
         elif "private_drive" in loc:
+            op = str(request.form.get('option', '').strip())
+            if "+" in op:
+                newloc = str(request.form.get('newfolder', '').strip())
+                newloc = clean_filename(newloc)
             if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)):
-                file.save(os.getcwd()+"//static//drive/" +str(request.remote_addr)+"/"+ file.filename)
+                pass
             else:
                 os.mkdir(os.getcwd()+"//static//drive//"+str(request.remote_addr))
                 os.mkdir(os.getcwd()+"//static//drive//trash//"+str(request.remote_addr))
+            if "lobby" in op:
                 file.save(os.getcwd()+"//static//drive/" +str(request.remote_addr)+"/"+ file.filename)
+            elif "+" in op:
+                if len(newloc) < 2 :
+                    return jsonify({'status': 'error'})
+                if os.path.exists(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"/"+newloc):
+                    pass
+                else:
+                    os.mkdir(os.getcwd()+"//static//drive//"+str(request.remote_addr)+"/"+newloc)
+                file.save(os.getcwd()+"//static//drive/" +str(request.remote_addr)+"/"+newloc+"/"+ file.filename)
+            else:
+                if os.path.exists(os.getcwd()+"//static//drive/" +str(request.remote_addr)+"/"+op):
+                    file.save(os.getcwd()+"//static//drive/" +str(request.remote_addr)+"/"+op+"/"+ file.filename)
+                else:
+                    return jsonify({'status': 'error'})
         else:
             return jsonify({'status': 'error'})
     return jsonify({'status': 'success'}) 
 
 @app.route('/play_video/<filename>')
 def play_video(filename):
-    cip = str(request.remote_addr)
-    resume = how_much_done(filename,cip)   
+    cip = str(request.remote_addr)  
+    resume = info.get_watchTime_video(filename,cip)
     custom_controls = False 
     with open("custom_controls.txt","r") as file:
         while True:
@@ -445,38 +488,23 @@ def play_video(filename):
             if line:
                 if str(request.remote_addr) in line:
                     custom_controls = True
-                    logging.warning("we have a custom boy")
             else:
                 break
-    video = []
-    ids = []
-    data = []
-    
-    with open("video_id.txt","r") as file:
-        while True:
-            line = file.readline().strip()
-            if line:
-                data.append(line)
-            else:
-                break
-    for i in range(0,len(data)):
-        video_temp,hold_1  = video_id_spearate(data[i])
-        if filename == hold_1:
-            v_title = video_temp
-            break
-    data = video_recommend(cip,data)
-    for i in range(0,2):
-        video_hold,ids_hold = video_id_spearate(data[i])
-        video.append(video_hold)
-        ids.append(ids_hold)
-            
     name  = []
     nail = []
-    percent = []
-    for i in range(0,len(video)):#try index out of range add that here
-        name.append(video[i][0:-4])
-        nail.append(video[i][0:-4]+".jpg")
-    return render_template('play_video.html',custom_controls = custom_controls,dataTitle = v_title,filename=filename,shows = name,names=nail,links = ids,resume=resume)
+    ids = []
+    v_title = info.getdata(f"select name from vid.video where vid_ID = '{filename}';")
+    v_title = v_title[0][0]
+    ops = ["All"]
+    op = info.getdata("select cat_name from vid.category;")
+    for data in op:
+        ops.append(data[0])
+    cuslist = info.recommend_video(cip,watching=filename)
+    for i in range(0,len(cuslist)):
+        name.append(cuslist[i][0])
+        nail.append(cuslist[i][0]+".jpg")
+        ids.append(cuslist[i][1])
+    return render_template('play_video.html',custom_controls = custom_controls,dataTitle = v_title,filename=filename,shows = name,names=nail,links = ids,resume=resume,next_vid=ids[0],ops=ops)
 
 @app.route("/print")
 def print():
@@ -497,13 +525,33 @@ def printout():
     if file.filename == '':
         return 'No selected file'
     
+    file.filename = clean_filename(file.filename)
+    
     file.save(os.getcwd()+"/" +file.filename)
 
-    os.system("lp "+str(os.getcwd())+"/" +str(file.filename))
-    def remove_after_done():
-        time.sleep(30)
-        os.remove("lp "+str(os.getcwd())+"/" +str(file.filename))
-    remove_the_file = threading.Thread(target=remove_after_done)
+    command = "-o media=A4"
+    command = command + " -n " + str(number)
+    if  "False" in color:
+        command = command + " -o ColorModel=Gray"
+    else:
+        command = command + " -o ColorModel=RGB"
+    if "Portrait" in angle:
+        command += " -o orientation-requested=3"
+    else:
+        command += " -o orientation-requested=3"#error
+    if "True" in  side:
+        command += " -o sides=two-sided-long-edge"
+    else:
+        command += " -o sides=one-sided"
+
+    if ".docx" in file.filename:
+        output = pypandoc.convert_file(str(os.getcwd())+"/" +str(file.filename), 'pdf', outputfile= str(os.getcwd())+"/" +str(file.filename[0:-5])+".pdf")
+        os.remove(str(os.getcwd())+"/" +str(file.filename))
+        file.filename = file.filename[0:-5]+".pdf"
+
+    os.system("lp "+command+" "+str(os.getcwd())+"/" +str(file.filename))
+    thename = file.filename
+    remove_the_file = threading.Thread(target=remove_after_done,args=(thename,number))
     remove_the_file.start()
     
     return render_template("done.html")
@@ -598,12 +646,23 @@ def download():
             types.append("unknown")
     return render_template("download.html",filenames=filenames,loc = "public_download",types = types)
 
-
-@app.route("/drive/download")
-def fdrive_download():
+@app.route("/drive/download/folder/<foldername>")
+def custom_folder_drive_download(foldername):
     cip = str(request.remote_addr) 
     if os.path.exists(os.getcwd()+"//static//drive//"+cip):
-        filenames = os.listdir(os.getcwd()+"//static//drive//"+cip)
+        hold = os.listdir(os.getcwd()+"//static//drive//"+cip)
+        filenames = []
+        rooms = []
+        rooms.append(foldername)
+        rooms.append("lobby")
+        for data in hold:
+            if (os.path.isdir(os.getcwd()+"//static//drive//"+cip+"//"+data)):
+                if foldername != data:
+                    rooms.append(data)
+        hold = os.listdir(os.getcwd()+"//static//drive//"+cip+"//"+foldername)
+        for data in hold:
+            if os.path.isfile(os.getcwd()+"//static//drive//"+cip+"//"+foldername+"//"+data):
+                filenames.append(data)
         types = []
         for file in filenames:
             if ".jpg"  in file or ".jpeg"  in file or ".png" in file:
@@ -612,7 +671,34 @@ def fdrive_download():
                 types.append("video")
             else :
                 types.append("unknown")
-        return render_template("download.html",filenames=filenames,loc = "private_drive",IP= cip,types=types)
+        
+        return render_template("download.html",filenames=filenames,loc = "private_drive",IP= cip,types=types,dataop = rooms)
+    else:
+        return redirect("/drive/upload")
+
+@app.route("/drive/download")
+def fdrive_download():
+    cip = str(request.remote_addr) 
+    if os.path.exists(os.getcwd()+"//static//drive//"+cip):
+        hold = os.listdir(os.getcwd()+"//static//drive//"+cip)
+        filenames = []
+        rooms = []
+        rooms.append("lobby")
+        for data in hold:
+            if (os.path.isfile(os.getcwd()+"//static//drive//"+cip+"//"+data)):
+                filenames.append(data)
+            else:
+                rooms.append(data)
+        types = []
+        for file in filenames:
+            if ".jpg"  in file or ".jpeg"  in file or ".png" in file:
+                types.append("image")
+            elif ".mp4" in file:
+                types.append("video")
+            else :
+                types.append("unknown")
+        
+        return render_template("download.html",filenames=filenames,loc = "private_drive",IP= cip,types=types,dataop = rooms)
     else:
         return redirect("/drive/upload")
 
@@ -626,171 +712,26 @@ def delete_file():
             if "public_download" in loc:
                 shutil.move((os.getcwd()+"//static//uploads//"+delete),(os.getcwd()+"//static//trash//"+delete))
             elif "private_drive" in loc:
-                shutil.move((os.getcwd()+"//static//drive//"+str(request.remote_addr)+"/"+delete),os.getcwd()+"//static//drive//trash//"+str(request.remote_addr)+"/"+delete)
+                roomloc = data.get("roomloc")
+                if roomloc == "lobby":
+                    shutil.move((os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+delete),os.getcwd()+"//static//drive//trash//"+str(request.remote_addr)+"/"+delete)
+                else:
+                    shutil.move((os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+roomloc+"//"+delete),os.getcwd()+"//static//drive//trash//"+str(request.remote_addr)+"/"+delete)
     else:
         if "public_download" in loc:
             shutil.move((os.getcwd()+"//static//uploads//"+deletes),(os.getcwd()+"//static//trash//"+deletes))
         elif "private_drive" in loc:
-            shutil.move((os.getcwd()+"//static//drive//"+str(request.remote_addr)+"/"+deletes),os.getcwd()+"//static//drive//trash//"+str(request.remote_addr)+"/"+deletes)
-    return jsonify({'status': 'success'}) 
-
-@app.route("/password")
-def Password():
-    if os.path.exists(os.getcwd()+"//login_password//"+str(request.remote_addr)+".txt"):
-        return redirect ("select_password")
-    else:
-        return render_template("password.html")
-
-@app.route("/password_login", methods=['post'])
-def password_login():
-    detail = []
-    detail.append(request.form.get('text', '').strip())
-    detail.append(request.form.get('password', '').strip())
-    
-    if "login" in password_ins.login(detail[0],detail[1]):
-        with open(os.getcwd()+"//login_password//"+str(request.remote_addr)+".txt","a")as file:
-            file.write(detail[0])
-            file.write("\n")
-            file.write(str(datetime.datetime.today()))
-            return redirect("/select_password")
-    else:
-        return render_template("password.html",text= detail[0],password= detail[1],message = password_ins.login(detail[0],detail[1]))
-@app.route("/password/create account")
-def create_password_Account():
-    return render_template("create_password_account.html")
-
-@app.route("/password/create account/pos", methods=['post'])
-def crearte_password_pos_acc():
-    detail = []
-    detail.append(request.form.get('text', '').strip())
-    detail.append(request.form.get('password', '').strip())
-    detail.append(request.form.get('email', '').strip())
-    ans = password_ins.create_account(detail[0],detail[1],detail[2])
-    if "Done" in ans:
-        return redirect("/password")
-    else:
-        return ans
-
-@app.route("/select_password")
-def select_password():
-    ids = []
-    ids = os.listdir(os.getcwd()+"//login_password")
-    for id in ids:
-        if str(request.remote_addr) in id:
-            with open(os.getcwd()+"//login_password//"+id,"r") as file:
-                username = file.readline().strip()
-                break
-    stored_password = os.listdir(os.getcwd()+"//passwords//"+username)
-    list_passwords = []
-    des_passwords = []
-    for i in range(0,len(stored_password)):
-        stored_password[i] = password_ins.decodename(stored_password[i])
-    stored_password.remove(username)
-    for passkey in stored_password:
-        temp_pass ,temp_des = password_ins.read_password(username,passkey)
-        list_passwords.append(temp_pass)
-        des_passwords.append(temp_des)
-    
-    return render_template("select_password.html",storage=stored_password,keys=list_passwords,des=des_passwords)
-@app.route("/password/create")
-def make_password():
-    return render_template("make_password.html")
-
-@app.route("/password/create/preview", methods=['GET','POST'])
-def preview_password():
-    found = "clear"
-    ans = ""
-    data = request.get_json()
-    size = data.get("size")
-    op = bool(data.get("option"))
-    name = data.get("name")
-    if size == "":
-        size = 0
-    else:
-        size = int(size)
-    if size >= 5:
-        ans = password_ins.gen(size,op)
-    with open(os.getcwd()+"//login_password//"+str(request.remote_addr)+".txt","r") as file:
-        username = file.readline().strip()
-    passwords = os.listdir(os.getcwd()+"//passwords//"+username)
-    name = password_ins.codename(name)
-    if name in passwords:
-        found = "match"
-    return jsonify({"passwords" : ans,
-                   "found":found}) 
-
-@app.route("/password/create/pos", methods=['POST'])
-def create_password():
-    passwordUpload = request.form.get('passwordUpdate', '').strip()
-    name = request.form.get('text', '').strip()
-    size = int(request.form.get('number', '').strip())
-    op = request.form.get('style', '').strip()
-    des = request.form.get('des', '').strip()
-    with open(os.getcwd()+"//login_password//"+str(request.remote_addr)+".txt","r") as file:
-        username = file.readline().strip()
-    if len(passwordUpload) == size:
-        ans = password_ins.make_password(username,passwordUpload,name,des)
-    else:
-        pass#make the error page after 10s redirect to the make password page
-    return redirect("/select_password")
-
-@app.route("/password/del", methods=['POST','GET'])
-def password_del():
-    data = request.get_json()
-    dothis = data.get("thisDel")
-    with open(os.getcwd()+"//login_password//"+str(request.remote_addr)+".txt","r") as file:
-        username = file.readline().strip()
-
-    ans = password_ins.del_password(username,dothis)
-
-    return jsonify(ans)
-@app.route("/password/logout")
-def pass_logout():
-    if os.path.exists(os.getcwd()+"//login_password//"+str(request.remote_addr)+".txt"):
-        os.remove(os.getcwd()+"//login_password//"+str(request.remote_addr)+".txt")
-    return redirect("/password")
-
-@app.route("/chat/group")
-def group_chat():
-    log = []
-    message = []
-    times = []
-    name = []
-    with open(os.getcwd()+"//static//web_data//chat//group.txt","r") as file:
-        for i in range (0,20):
-            line = file.readline().strip()
-            if line:
-                log.append(line)
+            roomloc = data.get("roomloc")
+            if roomloc == "lobby":
+                shutil.move((os.getcwd()+"//static//drive//"+str(request.remote_addr)+"/"+deletes),os.getcwd()+"//static//drive//trash//"+str(request.remote_addr)+"/"+deletes)
             else:
-                break
-        for i in range(0,len(log)):
-            tname,ttimes,tmessage = log[i].split("*")
-            name.append(tname)
-            times.append(ttimes)
-            message.append(tmessage)
-    return render_template("chat.html",lines = message,times = times,names = name)
-
-@app.route("/chat_update" , methods=['GET','POST'])
-def chat_update():
-    data = request.get_json()
-    message = data.get("message")
-    to = data.get("to")
-    nameF = identify(str(request.remote_addr))
-    responds = (nameF+"*"+str(time.ctime())+"*"+str(message))
-    if "group" in to:
-        with open(os.getcwd()+"//static//web_data//chat//group.txt","a")as file:
-            file.write(responds)
-            file.write("\n")
-    return jsonify({'status': 'success'})  
+                shutil.move((os.getcwd()+"//static//drive//"+str(request.remote_addr)+"//"+roomloc+"//"+delete),os.getcwd()+"//static//drive//trash//"+str(request.remote_addr)+"/"+delete)
+    return jsonify({'status': 'success'}) 
 
 @app.before_request
 def limit():
-    flag = False
-    for ips in ip:
-        if request.remote_addr == ips:
-            flag = True
-            break
-    if flag == False and request.path != "/static/locks.mp4" and request.path != "/static/icon.png":
+    flag  = info.verify_iden(str(request.remote_addr))
+    if flag == False:
         abort(403) 
 
 @app.errorhandler(404)
@@ -799,8 +740,13 @@ def http_error_handler(error):
 
 @app.errorhandler(403)
 def http_error_handler(error):
-    return render_template("403.html"),403
+    ip = request.host_url
+    ip = ip_translate(ip,True)+"/password"
+    return redirect(ip)
+
 
 
 if __name__ == "__main__":
-    app.run(host= "0.0.0.0",debug = True,port = 8000)
+    #ssl_context = 'adhoc'
+    #ssl_context=('cert.pem', 'key.pem') port 443 for https
+    app.run(host= "0.0.0.0",debug = False,port = 80)
