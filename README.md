@@ -1,1 +1,1 @@
-I am working on this currently and a lot of files and folder are not uploaded as they contain a lot of personal detail 
+This is my Personal website used in my home by my family a lot of info is redacted for my me and my familes privacy.
